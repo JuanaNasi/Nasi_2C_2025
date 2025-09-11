@@ -1,4 +1,4 @@
-/*! @mainpage Template
+/*! @mainpage Guia 1 ejercicio 6
  *
  * @section genDesc General Description
  *
@@ -8,9 +8,16 @@
  *
  * @section hardConn Hardware Connection
  *
- * |    Peripheral  |   ESP32   	|
+ *  * |    Peripheral  |   ESP32   	|
  * |:--------------:|:--------------|
- * | 	PIN_X	 	| 	GPIO_X		|
+ * | 	 	    	| 	GPIO_9		|
+ * | 		    	| 	GPIO_18		|
+ * | 	 	    	| 	GPIO_19		|
+ * | 	  LCD 	    | 	GPIO_20		|
+ * | 	 	    	| 	GPIO_21		|
+ * | 		    	| 	GPIO_22		|
+ * | 		    	| 	GPIO_23		|
+ * | 	 Buzer	    | 	GPIO_3		|
  *
  *
  * @section changelog Changelog
