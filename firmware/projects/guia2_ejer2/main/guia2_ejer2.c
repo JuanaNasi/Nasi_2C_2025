@@ -1,12 +1,13 @@
-/*! @mainpage Guia 2 ejercicio 1
+/*! @mainpage Guia 2 ejercicio 2
  *
  * \section genDesc General Description
- * 
- * Este programa se utiliza para medir la distancia a la que se encuentra un objeto 
- * mediante un sensor de ultrasonido HC-SR04. Mostraremos esta distancia mediante una
- * pantalla LCD
  *
+ * Cree un nuevo proyecto en el que modifique la actividad del punto 1 
+ * de manera de utilizar interrupciones para el control de las teclas y 
+ * el control de tiempos (Timers). 
  * 
+ * @section hardConn Hardware Connection
+ *
  * |    Peripheral  |   ESP32   	|
  * |:--------------:|:--------------|
  * | 			 	| 	GPIO_9		|
@@ -23,8 +24,8 @@
  *
  * |   Date	    | Description                                    |
  * |:----------:|:-----------------------------------------------|
- * | 11/09/2025 | Creacion del documento		                 |
- * | 23/09/2025 | Prueba del programa, funciona                  |
+ * | 24/09/2025 | Creacion del proyecto		                     |
+ * | 24/09/2025 | Finalizo ejercicio y pruebo en placa           |
  *
  * @author Juana Nasi (juananasi3009@gmail.com)
  *
@@ -42,24 +43,23 @@
 #include "freertos/task.h"
 #include "lcditse0803.h"
 #include "switch.h"
+#include "timer_mcu.h"
 
 /*==================[macros and definitions]=================================*/
 
-/** @def SWITCH_PERIODO
- *  @brief Valor de tiempo que debe pasar para poder realizar una lectura del estado del switch, tiempo que demoro en apretan la tecla
-*/
-#define SWITCH_PERIODO 200
-
 /** @def MEDICION_PERIODO
- *  @brief Valor de tiempo que debe pasar para poder realizar el sensado y  visualizacion de la medicion
+ *  @brief Valor de tiempo (en microsegundos) que debe pasar para poder realizar el sensado y visualizacion de la medicion
 */
-#define MEDICION_PERIODO 1000
+#define MEDICION_PERIODO 1000000
 
 /*==================[internal data definition]===============================*/
 
 uint16_t distancia_medida;
 bool control_medicion = false;
 bool control_hold = false; // defino variables booleanas y las inicializo en false a ambas, controlan el estado 
+
+TaskHandle_t medir_distancia_handle = NULL;
+TaskHandle_t mostrar_distancia_handle = NULL;
 
 /*==================[internal functions declaration]=========================*/
 
@@ -73,7 +73,9 @@ void MedirDistancia(void *pvParameter)
 	{
 		if (control_medicion)
 		{
-			distancia_medida = HcSr04ReadDistanceInCentimeters(); // funcion definida por la catedra, esta en drivers/devices/src/hc_cr04.c
+            ulTaskNotifyTake(pdTRUE, portMAX_DELAY); //espera a que la tarea sea notificada por el timer  
+			
+            distancia_medida = HcSr04ReadDistanceInCentimeters(); // funcion definida por la catedra, esta en drivers/devices/src/hc_cr04.c
 
 			if (distancia_medida < 10)
 			{
@@ -130,7 +132,7 @@ void MedirDistancia(void *pvParameter)
 				LedOff(LED_3);
 		}
 
-		vTaskDelay(MEDICION_PERIODO / portTICK_PERIOD_MS);
+		//vTaskDelay(MEDICION_PERIODO / portTICK_PERIOD_MS);
 	}
 }
 
@@ -144,6 +146,8 @@ void MostrarDistancia(void *pvParameter)
 
 	while (1)
 	{
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
 		if (control_medicion && !control_hold)
 		{
 			LcdItsE0803Write(distancia_medida); //funciones definidas en drivers/devices/src/lcditse0803.c
@@ -154,68 +158,67 @@ void MostrarDistancia(void *pvParameter)
 			LcdItsE0803Off();
 		}
 
-		vTaskDelay(MEDICION_PERIODO / portTICK_PERIOD_MS);
+		//vTaskDelay(MEDICION_PERIODO / portTICK_PERIOD_MS);
 	}
 }
 
 /** 
- * @brief LeerSwitches permite leer el estado de los switches.
- * @param *pvParameter puntero que permite la configuración de la tarea.
+ * @brief LeerSwitch permite leer el estado de los switches.
  */
-
-void LeerSwitches(void *pvParameter)
+void LeerSwitch(void)
 {
-	int teclas;
-	while (1)
-	{
-		teclas = SwitchesRead();
+	int switch_actual;
+	
+	switch_actual = SwitchesRead();
 
-		switch (teclas)
-		{
-		case SWITCH_1:
-
-			control_medicion = !control_medicion;
-
-			break;
-
-		case SWITCH_2:
-
-			control_hold = !control_hold;
-
-			break;
-		}
-		vTaskDelay(SWITCH_PERIODO / portTICK_PERIOD_MS);
-	}
+    switch (switch_actual)
+    {
+        case SWITCH_1:
+            control_medicion = !control_medicion;
+            //printf("Switch 1 activado\n");
+            break;
+			
+        case SWITCH_2:
+            control_hold = !control_hold;
+           // printf("Switch 2 activado\n");
+            break;
+    }
 }
+
+/**
+ * @brief Función invocada en la interrupción del timer A
+ */
+void FuncTimerA(void* param)
+{
+    vTaskNotifyGiveFromISR(medir_distancia_handle, pdFALSE);  // Envía una notificación a la tarea asociada*/
+	vTaskNotifyGiveFromISR(mostrar_distancia_handle, pdFALSE);
+}
+
 
 /*==================[external functions definition]==========================*/
 
 void app_main(void)
 {
+    LedsInit();
+    HcSr04Init(GPIO_3, GPIO_2); 
+    LcdItsE0803Init();
+    SwitchesInit();
 
-	/*Diseñar el firmware modelando con un diagrama de flujo de manera que cumpla con las siguientes funcionalidades:
+    timer_config_t timer_distancia = {
+        .timer = TIMER_A,
+        .period = MEDICION_PERIODO,
+        .func_p =FuncTimerA,
+        .param_p = NULL
+    };
 
-	1. Mostrar distancia medida utilizando los leds de la siguiente manera:
+    TimerInit(&timer_distancia);
 
-	a) Si la distancia es menor a 10 cm, apagar todos los LEDs.
-	b) Si la distancia está entre 10 y 20 cm, encender el LED_1.
-	c) Si la distancia está entre 20 y 30 cm, encender el LED_2 y LED_1.
-	d) Si la distancia es mayor a 30 cm, encender el LED_3, LED_2 y LED_1.
+    SwitchActivInt(SWITCH_1, &LeerSwitch, NULL);
+    SwitchActivInt(SWITCH_2, &LeerSwitch, NULL);
 
-	2. Mostrar el valor de distancia en cm utilizando el display LCD.
-	3. Usar TEC1 para activar y detener la medición.
-	4. Usar TEC2 para mantener el resultado (“HOLD”).
-	5. Refresco de medición: 1 s
-	*/
+    xTaskCreate(&MedirDistancia, "MedirDistancia", 2048, NULL, 5, &medir_distancia_handle);
+    xTaskCreate(&MostrarDistancia, "MostrarDistancia", 2048, NULL, 5, &mostrar_distancia_handle);
 
-	LedsInit();
-	HcSr04Init(GPIO_3, GPIO_2);
-	LcdItsE0803Init();
-	SwitchesInit();
+    TimerStart(timer_distancia.timer);
 
-	xTaskCreate(&MedirDistancia, "Medir distancia", 2048, NULL, 5, NULL);
-	xTaskCreate(&MostrarDistancia, "Mostrar distancia", 2048, NULL, 5, NULL);
-	xTaskCreate(&LeerSwitches, "Leer los switches", 2048, NULL, 5, NULL);
 }
-
-/*==================[end of file]============================================*/
