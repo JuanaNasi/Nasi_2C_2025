@@ -58,8 +58,9 @@
 /*==================[internal data definition]===============================*/
 
 uint16_t distancia_medida;
-bool control_medicion = false;
-bool control_hold = false; // defino variables booleanas y las inicializo en false a ambas, controlan el estado 
+bool control_medicion = false; //si es true, se ejecuta la lectura
+bool control_hold = false; //si es true, el LCD mantiene el ultimo valor medido
+// defino variables booleanas y las inicializo en false a ambas, controlan el estado 
 
 /*==================[internal functions declaration]=========================*/
 
@@ -86,7 +87,7 @@ void MedirDistancia(void *pvParameter)
 				LedOff(LED_3);
 			}
 
-			else if (10 <= distancia_medida && distancia_medida < 20) // && significa "y logico", actua como una compuesta NAND
+			else if (10 <= distancia_medida && distancia_medida < 20) // && significa "y logico" (o and logico), actua como una compuesta NAND, une condiciones logicas
 			{
 				printf("Distancia medida mayor a 10 cm pero menor a 20 cm\n");
 				printf("LED_1 ON\n");
@@ -144,7 +145,7 @@ void MostrarDistancia(void *pvParameter)
 
 	while (1)
 	{
-		if (control_medicion && !control_hold)
+		if (control_medicion && !control_hold) //! operador de negacion, invierte true/false
 		{
 			LcdItsE0803Write(distancia_medida); //funciones definidas en drivers/devices/src/lcditse0803.c
 		}
@@ -172,13 +173,13 @@ void LeerSwitches(void *pvParameter)
 
 		switch (teclas)
 		{
-		case SWITCH_1:
+		case SWITCH_1: //detiene o inicia la medicion
 
 			control_medicion = !control_medicion;
 
 			break;
 
-		case SWITCH_2:
+		case SWITCH_2: //mantiene el ultimo valor medido
 
 			control_hold = !control_hold;
 

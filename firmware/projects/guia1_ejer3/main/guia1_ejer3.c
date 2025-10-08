@@ -84,7 +84,7 @@ void ManejarLeds(struct leds *my_leds){
 	    
 		}	
 		break;
-	case TOOGLE:
+	case TOOGLE: //es como un interruptor
 		for(int j=0; j<my_leds->n_ciclos;j++)
 		{
 			switch(my_leds->n_led)

@@ -97,7 +97,8 @@ static void set_bcd_on_pins(uint8_t bcd_nibble, const gpioConf_t data_pins[NUM_B
  *
  * @param sel_pin  Pin de selección del dígito (salida).
  */
-static void lcd_latch_pulse(const gpioConf_t *sel_pin)
+static void lcd_latch_pulse(const gpioConf_t *sel_pin) //el latch significa enganchar, es un circuito que almacena un estado logico y lo mantiene hasta recibir una nueva orden.
+//cada CD4543 recuerda, gracias al latch, su digito, y los digitos permanecen encendidos al mismo tiempo sin la necesidad de refrescar
 {
     /* Datos ya estables en D1..D4; generamos pulso ON->OFF */
     GPIOOn(sel_pin->pin);

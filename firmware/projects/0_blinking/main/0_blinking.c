@@ -21,14 +21,14 @@
 #include "freertos/task.h"
 #include "led.h"
 /*==================[macros and definitions]=================================*/
-#define CONFIG_BLINK_PERIOD 1000
+#define CONFIG_BLINK_PERIOD 1000 // define el periodo de parpadeo en ms
 /*==================[internal data definition]===============================*/
 
 /*==================[internal functions declaration]=========================*/
 
 /*==================[external functions definition]==========================*/
 void app_main(void){
-    LedsInit();
+    LedsInit(); // inicializa los leds, configura los pines como salida digital a traves del driver HAL
     while(true){
         printf("LED ON 1\n");
         LedOn(LED_1);

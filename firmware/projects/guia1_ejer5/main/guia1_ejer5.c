@@ -41,7 +41,7 @@ typedef struct
 {
 	gpio_t pin;			/*!< GPIO pin number */
 	io_t dir;			/*!< GPIO direction '0' IN;  '1' OUT*/
-} gpioConf_t;
+} gpioConf_t; // desacopla el orden logico (b0 ... b3) del fisico (GPIO_20 ... GPIO_23), si cambia el hardware solo actualizo la tabla.
 
 void ModificarEstadoPinCodificacion(uint8_t BCD, gpioConf_t *Pines)
 {

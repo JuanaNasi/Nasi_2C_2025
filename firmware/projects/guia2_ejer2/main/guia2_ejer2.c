@@ -59,7 +59,7 @@ bool control_medicion = false;
 bool control_hold = false; // defino variables booleanas y las inicializo en false a ambas, controlan el estado 
 
 TaskHandle_t medir_distancia_handle = NULL;
-TaskHandle_t mostrar_distancia_handle = NULL;
+TaskHandle_t mostrar_distancia_handle = NULL; //TaskHandle_t guarda los identificadores de las tareas, necesario para enviarles notificaciones desde las interrupciones
 
 /*==================[internal functions declaration]=========================*/
 
@@ -73,9 +73,11 @@ void MedirDistancia(void *pvParameter)
 	{
 		if (control_medicion)
 		{
-            ulTaskNotifyTake(pdTRUE, portMAX_DELAY); //espera a que la tarea sea notificada por el timer  
+            ulTaskNotifyTake(pdTRUE, portMAX_DELAY); //espera a que la tarea sea notificada por el timer, reelmplaza vTaskDelay
+			//cuando el timer dispara la interrupcion, la tarea se desbloquea y ejecuta la lectura de distancia como antes
+            //planificacion basada en eventos, no en un tiempo fijo
 			
-            distancia_medida = HcSr04ReadDistanceInCentimeters(); // funcion definida por la catedra, esta en drivers/devices/src/hc_cr04.c
+			distancia_medida = HcSr04ReadDistanceInCentimeters(); // funcion definida por la catedra, esta en drivers/devices/src/hc_cr04.c
 
 			if (distancia_medida < 10)
 			{

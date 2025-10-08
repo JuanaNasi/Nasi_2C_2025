@@ -35,9 +35,9 @@
 
 /*==================[internal functions declaration]=========================*/
 
-void  ConvertToBcdArray (uint32_t data, uint8_t digits, uint8_t * bcd_number)
+void  ConvertToBcdArray (uint32_t data, uint8_t digits, uint8_t * bcd_number) //los uint indican cuantos bits ocupa la variable y si admite numeros negativos o no
 {
-		uint8_t resto;
+		uint8_t resto; // u=unsigned y int=entero, _t=tipo
 		for(uint8_t i = 0; i<digits; i++)
 		{
 			resto = data%10; //Mediante el operador % obtengo el dato del resto del cociente. Te da el último dígito del número.

@@ -32,7 +32,7 @@
 #include "led.h"
 #include "switch.h"
 /*==================[macros and definitions]=================================*/
-#define CONFIG_BLINK_PERIOD 1100
+#define CONFIG_BLINK_PERIOD 1100 //si no introducimos este retardo, el led puede conmutar demasiado rapido al mantener la tecla
 /*==================[internal data definition]===============================*/
 
 /*==================[internal functions declaration]=========================*/
@@ -41,9 +41,9 @@
 void app_main(void){
 	uint8_t teclas;
 	LedsInit();
-	SwitchesInit();
-    while(1)    {
-    	teclas  = SwitchesRead();
+	SwitchesInit(); // habilitan hardware de las teclas
+    while(1)    {  //bucle principal tipo superloop
+    	teclas  = SwitchesRead(); //lee teclas
     	switch(teclas){
     		case SWITCH_1:
     			LedToggle(LED_1);
@@ -51,7 +51,7 @@ void app_main(void){
     		case SWITCH_2:
     			LedToggle(LED_2);
     		break;
-			case SWITCH_1 | SWITCH_2:
+			case SWITCH_1 | SWITCH_2: // el | es el caso combinado
 			    LedToggle(LED_3);
 			break;
     	}
